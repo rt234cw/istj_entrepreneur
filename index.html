@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISTJ 創業適性互動分析儀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A thematic, single-page scrolling application with a sticky navigation. The structure guides the user from self-assessment (Strengths/Weaknesses) to objective challenges (Failure Factors), comparative analysis (Charts vs. other MBTIs), and finally to actionable strategies (Success Paths). This narrative flow is more intuitive for understanding a complex topic than a simple dashboard or mirroring the report's chapters. Key interactions include toggling data on a radar chart and flipping cards to reveal connections, enhancing engagement and comprehension. -->
+    <!-- Visualization & Content Choices: 1. Japanese Manager Data -> Goal: Compare -> Viz: Horizontal Bar Chart -> Interaction: Tooltips -> Justification: Clear comparison of discrete percentages -> Library: Chart.js. 2. Trait Comparison -> Goal: Compare -> Viz: Radar Chart -> Interaction: Buttons to toggle personality types -> Justification: Shows the "shape" of strengths/weaknesses across multiple axes for intuitive, multi-dimensional comparison -> Library: Chart.js. 3. Weaknesses vs. Failure Factors -> Goal: Relate -> Viz: Interactive Cards -> Interaction: Hover to reveal connection -> Justification: Makes the abstract relationship between personality and business risk tangible and engaging -> Method: HTML/CSS/JS. All visualizations are on Canvas, confirming NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F8F7F4;
+            color: #3D405B;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #8D7B68;
+            border-bottom-color: #8D7B68;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            max-height: 500px;
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 500px;
+            }
+        }
+        .btn-toggle {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="navbar" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-[#3D405B]">ISTJ 創業分析</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium">總覽</a>
+                        <a href="#traits" class="nav-link px-3 py-2 rounded-md text-sm font-medium">雙面刃</a>
+                        <a href="#gauntlet" class="nav-link px-3 py-2 rounded-md text-sm font-medium">創業試煉</a>
+                        <a href="#arena" class="nav-link px-3 py-2 rounded-md text-sm font-medium">競技場</a>
+                        <a href="#path" class="nav-link px-3 py-2 rounded-md text-sm font-medium">成功路徑</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="intro" class="py-20 md:py-28 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-[#3D405B]">ISTJ 創業適性互動分析儀</h2>
+                <p class="mt-6 max-w-3xl mx-auto text-lg text-gray-600">本分析旨在客觀且嚴格地評估ISTJ人格的創業適性。我們將MBTI理論與商業研究中的關鍵成功因素結合，揭示ISTJ在創業路上面臨的結構性挑戰、潛在優勢，並提供基於現實的策略建議。</p>
+            </div>
+        </section>
+
+        <section id="traits" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h3 class="text-3xl font-bold text-[#3D405B]">雙面刃：ISTJ的創業特質</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-md text-gray-600">ISTJ的特質在創業過程中既是資產也是負債。他們是卓越的執行者，但在開創階段卻可能受限。理解這些特質的兩面性，是制定成功策略的第一步。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div>
+                        <h4 class="text-2xl font-semibold text-green-700 mb-6 text-center">潛在優勢 (資產)</h4>
+                        <div class="space-y-6">
+                            <div class="card bg-white p-6 rounded-lg shadow-sm">
+                                <h5 class="font-bold text-lg">出色的組織與執行能力</h5>
+                                <p class="text-gray-600 mt-2">能建立穩固的後勤、財務和運營規範，為企業奠定堅實基礎。是優秀的「運營長」(COO) 或「財務長」(CFO) 人選。</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-sm">
+                                <h5 class="font-bold text-lg">無可置疑的可靠性與誠信</h5>
+                                <p class="text-gray-600 mt-2">信守承諾，言出必行。在與客戶、夥伴建立信任關係時至關重要，能為公司贏得寶貴信譽。</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-sm">
+                                <h5 class="font-bold text-lg">注重細節與冷靜決策</h5>
+                                <p class="text-gray-600 mt-2">對細節的極度關注能防範未然，確保品質。在壓力下能保持冷靜，理性處理突發狀況。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-semibold text-red-700 mb-6 text-center">固有劣勢 (負債)</h4>
+                        <div class="space-y-6">
+                            <div class="card bg-white p-6 rounded-lg shadow-sm">
+                                <h5 class="font-bold text-lg">保守與不適應變革</h5>
+                                <p class="text-gray-600 mt-2">傾向於選擇「安全」市場，在環境劇變時反應慢半拍，可能錯失轉型良機。</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-sm">
+                                <h5 class="font-bold text-lg">內向與社交網絡的挑戰</h5>
+                                <p class="text-gray-600 mt-2">不擅長拓展人際網絡與銷售，這與創業者吸引投資、客戶和團隊的核心職責存在衝突。</p>
+                            </div>
+                            <div class="card bg-white p-6 rounded-lg shadow-sm">
+                                <h5 class="font-bold text-lg">對結構的依賴與冒險精神缺乏</h5>
+                                <p class="text-gray-600 mt-2">厭惡不確定性，難以在缺乏數據支持下果斷決策，限制了創新與承擔戰略性風險的能力。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="gauntlet" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h3 class="text-3xl font-bold text-[#3D405B]">創業試煉：特質與失敗因素的對決</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-md text-gray-600">創業的道路充滿陷阱。ISTJ的某些核心特質，與歷史上公認的創業失敗關鍵因素有著驚人的對應關係。將滑鼠懸停在下方的卡片上，探索這些潛在的風險。</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="relative group card border border-gray-200 rounded-lg p-6 text-center bg-[#F8F7F4] overflow-hidden">
+                        <div class="transition-opacity duration-300 group-hover:opacity-0">
+                            <h5 class="font-bold text-lg">過於保守</h5>
+                            <p class="text-gray-500 mt-2">不易適應變化</p>
+                        </div>
+                        <div class="absolute inset-0 bg-[#3D405B] text-white p-6 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h6 class="font-bold">對應風險</h6>
+                            <p class="mt-2 text-sm">商機評估錯誤、缺乏適應能力，最終錯過市場。</p>
+                        </div>
+                    </div>
+                    <div class="relative group card border border-gray-200 rounded-lg p-6 text-center bg-[#F8F7F4] overflow-hidden">
+                        <div class="transition-opacity duration-300 group-hover:opacity-0">
+                            <h5 class="font-bold text-lg">內向，不擅社交</h5>
+                            <p class="text-gray-500 mt-2">難以建立人脈</p>
+                        </div>
+                        <div class="absolute inset-0 bg-[#3D405B] text-white p-6 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h6 class="font-bold">對應風險</h6>
+                            <p class="mt-2 text-sm">銷售能力不足、無法吸引資金、客戶和頂尖人才。</p>
+                        </div>
+                    </div>
+                    <div class="relative group card border border-gray-200 rounded-lg p-6 text-center bg-[#F8F7F4] overflow-hidden">
+                        <div class="transition-opacity duration-300 group-hover:opacity-0">
+                            <h5 class="font-bold text-lg">依賴結構，規避風險</h5>
+                            <p class="text-gray-500 mt-2">缺乏冒險精神</p>
+                        </div>
+                        <div class="absolute inset-0 bg-[#3D405B] text-white p-6 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h6 class="font-bold">對應風險</h6>
+                            <p class="mt-2 text-sm">缺乏創新思維、無法承擔必要風險以獲得突破。</p>
+                        </div>
+                    </div>
+                    <div class="relative group card border border-gray-200 rounded-lg p-6 text-center bg-[#F8F7F4] overflow-hidden">
+                        <div class="transition-opacity duration-300 group-hover:opacity-0">
+                            <h5 class="font-bold text-lg">過於嚴謹</h5>
+                            <p class="text-gray-500 mt-2">注重細節</p>
+                        </div>
+                        <div class="absolute inset-0 bg-[#3D405B] text-white p-6 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h6 class="font-bold">對應風險</h6>
+                            <p class="mt-2 text-sm">完美主義陷阱，延遲產品上市與市場驗證時機。</p>
+                        </div>
+                    </div>
+                    <div class="relative group card border border-gray-200 rounded-lg p-6 text-center bg-[#F8F7F4] overflow-hidden">
+                        <div class="transition-opacity duration-300 group-hover:opacity-0">
+                            <h5 class="font-bold text-lg">壓抑情感</h5>
+                            <p class="text-gray-500 mt-2">不善於表達</p>
+                        </div>
+                        <div class="absolute inset-0 bg-[#3D405B] text-white p-6 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <h6 class="font-bold">對應風險</h6>
+                            <p class="mt-2 text-sm">團隊管理不當、凡事自己來，導致身心俱疲。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="arena" class="py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h3 class="text-3xl font-bold text-[#3D405B]">創業競技場：ISTJ vs. 其他人格</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-md text-gray-600">數據不會說謊。ISTJ在創業者群體中的佔比雖然不低，但與典型的創業者人格相比，其特質分佈存在顯著差異。這裡我們將進行量化與質性的客觀比較。</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div class="card bg-white p-6 md:p-8 rounded-lg shadow-sm">
+                        <h4 class="text-xl font-semibold text-center mb-4">日本經營者MBTI傾向調查</h4>
+                        <div class="chart-container h-80 md:h-96">
+                            <canvas id="managerChart"></canvas>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4 text-center">資料來源：一項針對408名日本經營者的調查。</p>
+                    </div>
+                    <div class="card bg-white p-6 md:p-8 rounded-lg shadow-sm">
+                        <h4 class="text-xl font-semibold text-center mb-4">創業關鍵特質雷達圖</h4>
+                        <div class="chart-container h-80 md:h-96">
+                            <canvas id="traitRadarChart"></canvas>
+                        </div>
+                        <div id="radar-controls" class="flex flex-wrap justify-center gap-2 mt-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="path" class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h3 class="text-3xl font-bold text-[#3D405B]">ISTJ的成功路徑</h3>
+                    <p class="mt-4 max-w-2xl mx-auto text-md text-gray-600">儘管面臨挑戰，ISTJ依然可以創業成功。關鍵在於揚長避短，選擇正確的戰場與策略。他們的成功並非顛覆天性，而是將自身優勢發揮到極致。</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+                    <div class="card bg-[#F8F7F4] p-8 rounded-lg">
+                        <h4 class="text-xl font-bold mb-2">傑夫·貝佐斯 (Jeff Bezos)</h4>
+                        <p class="text-sm text-gray-500 mb-4">亞馬遜創辦人</p>
+                        <p class="text-gray-700">他的成功並非源於新點子，而是將ISTJ「注重細節」和「建立可靠系統」的特質發揮到極致。他將混亂的零售業轉化為一個有組織、可預測的電商系統，其核心競爭力是效率與流程。</p>
+                    </div>
+                    <div class="card bg-[#F8F7F4] p-8 rounded-lg">
+                        <h4 class="text-xl font-bold mb-2">提姆·庫克 (Tim Cook)</h4>
+                        <p class="text-sm text-gray-500 mb-4">蘋果公司CEO</p>
+                        <p class="text-gray-700">他展現了ISTJ作為「守成者」和「運營者」的卓越能力。他專注於供應鏈管理和效率提升，將一個充滿創意的公司打造成全球運營巨頭，完美演繹了「從1到100」的過程。</p>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-2xl font-semibold text-center mb-8">給ISTJ的嚴厲建議</h4>
+                    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                        <div class="card bg-white p-6 rounded-lg shadow-sm">
+                            <div class="text-4xl text-[#8D7B68] mb-3">1</div>
+                            <h5 class="font-bold text-lg mb-2">選擇合適的商業模式</h5>
+                            <p class="text-gray-600 text-sm">避開高風險、高創新的產業，選擇注重流程、細節和穩定性的領域，如顧問、工程管理、後勤服務等。</p>
+                        </div>
+                        <div class="card bg-white p-6 rounded-lg shadow-sm">
+                            <div class="text-4xl text-[#8D7B68] mb-3">2</div>
+                            <h5 class="font-bold text-lg mb-2">尋找互補的創業夥伴</h5>
+                            <p class="text-gray-600 text-sm">與ESTP或ENTJ等外向、高風險偏好的夥伴合作。專注於後端系統與運營，將市場開拓交給夥伴。</p>
+                        </div>
+                        <div class="card bg-white p-6 rounded-lg shadow-sm">
+                            <div class="text-4xl text-[#8D7B68] mb-3">3</div>
+                            <h5 class="font-bold text-lg mb-2">專注於「從1到100」</h5>
+                            <p class="text-gray-600 text-sm">不擅長「從0到1」的創造。可從加盟、收購或改進現有商業模式入手，規避最高風險的啟動階段。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-[#3D405B] text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-base">創業是艱難的旅程，尤其對ISTJ而言。在做出決定前，請嚴肅審視自身對不確定性的容忍度。</p>
+            <p class="mt-4 text-sm text-gray-400">&copy; 2025 ISTJ 創業適性互動分析儀. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.4
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            navLinks.forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            const managerData = {
+                labels: ['ESTP (起業家)', 'ENTJ (指揮官)', 'ISTJ (管理者)'],
+                datasets: [{
+                    label: '經營者佔比 (%)',
+                    data: [13.7, 12.3, 11.5],
+                    backgroundColor: ['#8D7B68', '#A4907C', '#C8B6A6'],
+                    borderColor: ['#8D7B68', '#A4907C', '#C8B6A6'],
+                    borderWidth: 1
+                }]
+            };
+
+            const managerChartCtx = document.getElementById('managerChart').getContext('2d');
+            new Chart(managerChartCtx, {
+                type: 'bar',
+                data: managerData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '百分比 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const radarData = {
+                labels: ['風險容忍度', '創新與應變', '人際與銷售', '執行與組織', '決策模式'],
+                datasets: [
+                    {
+                        label: 'ISTJ',
+                        data: [2, 2, 2, 5, 3],
+                        fill: true,
+                        backgroundColor: 'rgba(61, 64, 91, 0.2)',
+                        borderColor: 'rgb(61, 64, 91)',
+                        pointBackgroundColor: 'rgb(61, 64, 91)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(61, 64, 91)',
+                        hidden: false
+                    },
+                    {
+                        label: 'ESTP',
+                        data: [5, 5, 5, 4, 4],
+                        fill: true,
+                        backgroundColor: 'rgba(141, 123, 104, 0.2)',
+                        borderColor: 'rgb(141, 123, 104)',
+                        pointBackgroundColor: 'rgb(141, 123, 104)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(141, 123, 104)',
+                        hidden: true
+                    },
+                    {
+                        label: 'ENTJ',
+                        data: [4, 4, 4, 5, 5],
+                        fill: true,
+                        backgroundColor: 'rgba(200, 182, 166, 0.2)',
+                        borderColor: 'rgb(200, 182, 166)',
+                        pointBackgroundColor: 'rgb(200, 182, 166)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(200, 182, 166)',
+                        hidden: true
+                    },
+                    {
+                        label: 'ENTP',
+                        data: [5, 5, 4, 3, 4],
+                        fill: true,
+                        backgroundColor: 'rgba(164, 144, 124, 0.2)',
+                        borderColor: 'rgb(164, 144, 124)',
+                        pointBackgroundColor: 'rgb(164, 144, 124)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(164, 144, 124)',
+                        hidden: true
+                    }
+                ]
+            };
+            
+            const radarChartCtx = document.getElementById('traitRadarChart').getContext('2d');
+            const traitRadarChart = new Chart(radarChartCtx, {
+                type: 'radar',
+                data: radarData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            pointLabels: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                             ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    }
+                }
+            });
+
+            const radarControlsContainer = document.getElementById('radar-controls');
+            radarData.datasets.forEach((dataset, index) => {
+                const button = document.createElement('button');
+                button.textContent = dataset.label;
+                button.className = 'btn-toggle px-3 py-1 text-sm rounded-full border';
+                
+                const updateButtonStyle = () => {
+                    const isHidden = traitRadarChart.isDatasetVisible(index);
+                    if (isHidden) {
+                        button.style.backgroundColor = dataset.borderColor;
+                        button.style.color = 'white';
+                        button.style.borderColor = dataset.borderColor;
+                    } else {
+                        button.style.backgroundColor = 'transparent';
+                        button.style.color = dataset.borderColor;
+                        button.style.borderColor = dataset.borderColor;
+                    }
+                };
+
+                button.addEventListener('click', () => {
+                    const meta = traitRadarChart.getDatasetMeta(index);
+                    meta.hidden = !meta.hidden;
+                    traitRadarChart.update();
+                    updateButtonStyle();
+                });
+                
+                traitRadarChart.isDatasetVisible(index) ? (meta.hidden = false) : (meta.hidden = true);
+                const meta = traitRadarChart.getDatasetMeta(index);
+                meta.hidden = dataset.hidden;
+                updateButtonStyle();
+                radarControlsContainer.appendChild(button);
+            });
+            traitRadarChart.update();
+        });
+    </script>
+</body>
+</html>
